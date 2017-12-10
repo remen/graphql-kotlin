@@ -8,45 +8,6 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
-val schemaQuery = """
-    {
-      __schema {
-        queryType {
-          name
-          fields {
-            name
-            args {
-              name
-              type {
-                name
-                kind
-                ofType {
-                  name
-                  kind
-                }
-              }
-            }
-            type {
-              name
-              kind
-              ofType {
-                name
-                kind
-              }
-            }
-          }
-        }
-      }
-    }
-"""
-
-data class Type(val name: String?, val kind: String?, val ofType: Type?)
-data class Arg(val name: String, val type: Type)
-data class Field(val name: String, val args: List<Arg>, val type: Type)
-data class QueryType(val name: String, val fields: List<Field>)
-data class Schema(val queryType: QueryType)
-data class IntroSpectionResult(val __schema: Schema)
-
 object PrimitiveFieldsTest : Spek({
     val objectMapper = ObjectMapper().registerKotlinModule()
 
@@ -71,12 +32,16 @@ object PrimitiveFieldsTest : Spek({
     val graphQL = GraphQL.newGraphQL(graphQLSchema).build()
 
     describe("the queryType") {
-        val data = graphQL.execute(schemaQuery).getData<Any>()
-        val result = objectMapper.convertValue(data, IntroSpectionResult::class.java)
-        val queryType = result.__schema.queryType
+        var queryType : QueryType? = null
+
+        beforeGroup {
+            val data = graphQL.execute(schemaQuery).getData<Any>()
+            val result = objectMapper.convertValue(data, IntroSpectionResult::class.java)
+            queryType = result.__schema.queryType
+        }
 
         it("has the correct name") {
-            assertThat(queryType.name).isEqualTo("PrimitiveFieldsQuery")
+            assertThat(queryType!!.name).isEqualTo("PrimitiveFieldsQuery")
         }
 
         listOf(
@@ -88,7 +53,10 @@ object PrimitiveFieldsTest : Spek({
             "boolean" to "Boolean"
         ).forEach { (fieldName, typeName) ->
             describe("the '$fieldName' field") {
-                val field = queryType.fields.find { it.name == fieldName }
+                var field : Field? = null
+                beforeGroup {
+                    field = queryType!!.fields.find { it.name == fieldName }
+                }
 
                 it("exists") {
                     assertThat(field).isNotNull()
@@ -113,8 +81,10 @@ object PrimitiveFieldsTest : Spek({
             "nullableBoolean" to "Boolean"
         ).forEach { (fieldName, typeName) ->
             describe("the '$fieldName' field") {
-                val field = queryType.fields.find { it.name == fieldName }
-
+                var field : Field? = null
+                beforeGroup {
+                    field = queryType!!.fields.find { it.name == fieldName }
+                }
                 it("exists") {
                     assertThat(field).isNotNull()
                 }
