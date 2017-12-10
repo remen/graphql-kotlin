@@ -1,7 +1,5 @@
 package io.github.remen.graphqlkotlin
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import graphql.GraphQL
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
@@ -9,9 +7,6 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
 object PrimitiveFieldsTest : Spek({
-    val objectMapper = ObjectMapper().registerKotlinModule()
-
-
     class PrimitiveFieldsQuery {
         val integer: Int = 0
         val long: Long = 1
@@ -28,16 +23,13 @@ object PrimitiveFieldsTest : Spek({
         val nullableBoolean: Boolean? = null
     }
 
-    val graphQLSchema = createGraphQLSchema(PrimitiveFieldsQuery::class)
-    val graphQL = GraphQL.newGraphQL(graphQLSchema).build()
+    val graphQL = GraphQL.newGraphQL(createGraphQLSchema(PrimitiveFieldsQuery::class)).build()
 
     describe("the queryType") {
         var queryType : QueryType? = null
 
         beforeGroup {
-            val data = graphQL.execute(schemaQuery).getData<Any>()
-            val result = objectMapper.convertValue(data, IntroSpectionResult::class.java)
-            queryType = result.__schema.queryType
+            queryType = introspectQueryType(graphQL)
         }
 
         it("has the correct name") {
@@ -98,4 +90,3 @@ object PrimitiveFieldsTest : Spek({
         }
     }
 })
-

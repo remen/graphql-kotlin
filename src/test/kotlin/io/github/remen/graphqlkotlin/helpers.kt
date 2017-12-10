@@ -1,5 +1,18 @@
 package io.github.remen.graphqlkotlin
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import graphql.GraphQL
+
+fun introspectQueryType(graphQL: GraphQL): QueryType {
+    val data = graphQL.execute(schemaQuery).getData<Any>()
+    val result = objectMapper.convertValue(data, IntroSpectionResult::class.java)
+    return result!!.__schema.queryType
+}
+
+val objectMapper = ObjectMapper().registerKotlinModule().configure(SerializationFeature.INDENT_OUTPUT, true)
+
 val schemaQuery = """
     {
       __schema {
