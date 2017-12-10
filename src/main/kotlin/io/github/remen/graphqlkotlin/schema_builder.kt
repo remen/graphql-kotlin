@@ -5,6 +5,7 @@ import graphql.schema.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.valueParameters
 
 class GraphQLSchemaBuilder(val kClass: KClass<*>) {
     private val references = mutableSetOf<String>()
@@ -29,16 +30,29 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
             val name = it.name
             listOf("name", "copy", "equals", "hashCode", "toString").contains(name) || name.startsWith("component")
         }.mapNotNull { member ->
-            val type: GraphQLOutputType = graphQLOutputType(member.returnType)
+            val arguments: List<GraphQLArgument> = member.valueParameters.map { kParameter ->
+                if (kParameter.type.classifier == Float::class) {
+                    throw IllegalArgumentException("Cannot use Float type in input variables (Float type in GraphQL is too big)")
+                }
 
+                val argType : GraphQLInputType = graphQLType(kParameter.type)
+
+                GraphQLArgument.newArgument()
+                    .name(kParameter.name)
+                    .type(argType)
+                    .build()
+            }
+
+            val returnType: GraphQLOutputType = graphQLType(member.returnType)
             GraphQLFieldDefinition.newFieldDefinition()
                 .name(member.name)
-                .type(type)
+                .type(returnType)
+                .argument(arguments)
                 .build()
         }
     }
 
-    private fun graphQLOutputType(kType: KType): GraphQLOutputType {
+    private fun <T : GraphQLType> graphQLType(kType: KType): T {
         val returnTypeClass = kType.classifier!! as KClass<*>
         val innerType: GraphQLOutputType = when {
             returnTypeClass == Int::class -> GraphQLInt
@@ -47,7 +61,7 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
             returnTypeClass == Float::class -> GraphQLFloat
             returnTypeClass == String::class -> GraphQLString
             returnTypeClass == Boolean::class -> GraphQLBoolean
-            returnTypeClass.isSubclassOf(Collection::class) -> GraphQLList.list(graphQLOutputType(kType.arguments[0].type!!))
+            returnTypeClass.isSubclassOf(Collection::class) -> GraphQLList.list(graphQLType(kType.arguments[0].type!!))
             else -> {
                 if (returnTypeClass.simpleName in references) {
                     GraphQLTypeReference(returnTypeClass.simpleName)
@@ -57,10 +71,12 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
             }
         }
 
-        val type: GraphQLOutputType = if (!kType.isMarkedNullable) {
-            GraphQLNonNull(innerType)
+        val type: T = if (!kType.isMarkedNullable) {
+            @Suppress("UNCHECKED_CAST")
+            GraphQLNonNull(innerType) as T
         } else {
-            innerType
+            @Suppress("UNCHECKED_CAST")
+            innerType as T
         }
         return type
     }
