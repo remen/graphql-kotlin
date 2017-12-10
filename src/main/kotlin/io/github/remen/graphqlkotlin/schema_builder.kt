@@ -3,6 +3,8 @@ package io.github.remen.graphqlkotlin
 import graphql.Scalars.*
 import graphql.schema.*
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.full.isSubclassOf
 
 fun createGraphQLSchema(kClass: KClass<*>): GraphQLSchema {
     return GraphQLSchema.newSchema()
@@ -18,21 +20,7 @@ private fun fields(kClass: KClass<*>): List<GraphQLFieldDefinition> {
         val name = it.name
         listOf("name", "copy", "equals", "hashCode", "toString").contains(name) || name.startsWith("component")
     }.mapNotNull { member ->
-        val innerType = when (member.returnType.classifier) {
-            Int::class -> GraphQLInt
-            Long::class -> GraphQLLong
-            Double::class -> GraphQLFloat
-            Float::class -> GraphQLFloat
-            String::class -> GraphQLString
-            Boolean::class -> GraphQLBoolean
-            else -> TODO("No handler for returnType ${member.returnType} on field ${member.name}")
-        }
-
-        val type : GraphQLOutputType = if (!member.returnType.isMarkedNullable) {
-            GraphQLNonNull(innerType)
-        } else {
-            innerType
-        }
+        val type: GraphQLOutputType = graphQLOutputType(member.returnType)
 
         GraphQLFieldDefinition.newFieldDefinition()
             .name(member.name)
@@ -40,3 +28,25 @@ private fun fields(kClass: KClass<*>): List<GraphQLFieldDefinition> {
             .build()
     }
 }
+
+private fun graphQLOutputType(kType: KType): GraphQLOutputType {
+    val returnTypeClass = kType.classifier!! as KClass<*>
+    val innerType: GraphQLOutputType = when {
+        returnTypeClass == Int::class -> GraphQLInt
+        returnTypeClass == Long::class -> GraphQLLong
+        returnTypeClass == Double::class -> GraphQLFloat
+        returnTypeClass == Float::class -> GraphQLFloat
+        returnTypeClass == String::class -> GraphQLString
+        returnTypeClass == Boolean::class -> GraphQLBoolean
+        returnTypeClass.isSubclassOf(Collection::class) -> GraphQLList.list(graphQLOutputType(kType.arguments[0].type!!))
+        else -> TODO("No handler for returnType ${returnTypeClass}")
+    }
+
+    val type: GraphQLOutputType = if (!kType.isMarkedNullable) {
+        GraphQLNonNull(innerType)
+    } else {
+        innerType
+    }
+    return type
+}
+

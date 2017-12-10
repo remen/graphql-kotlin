@@ -13,6 +13,11 @@ fun introspectQueryType(graphQL: GraphQL): QueryType {
 
 val objectMapper = ObjectMapper().registerKotlinModule().configure(SerializationFeature.INDENT_OUTPUT, true)
 
+val Any.json: String
+    get() {
+        return objectMapper.writeValueAsString(this)
+    }
+
 val schemaQuery = """
     {
       __schema {
@@ -37,6 +42,14 @@ val schemaQuery = """
               ofType {
                 name
                 kind
+                ofType {
+                  name
+                  kind
+                  ofType {
+                    name
+                    kind
+                  }
+                }
               }
             }
           }
