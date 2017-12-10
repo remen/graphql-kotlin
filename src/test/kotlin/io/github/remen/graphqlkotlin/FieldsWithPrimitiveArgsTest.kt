@@ -28,6 +28,10 @@ object FieldsWithPrimitiveArgsTest : Spek({
             return x
         }
 
+        fun nullableInteger(x: Int?): Int? {
+            return x
+        }
+
     }
 
     var graphQL: GraphQL? = null
@@ -68,6 +72,23 @@ object FieldsWithPrimitiveArgsTest : Spek({
                 assertThat(ofType.kind).isEqualTo("SCALAR")
                 assertThat(ofType.name).isEqualTo(type)
             }
+        }
+    }
+
+    describe("the nullableInteger field") {
+        val name = "nullableInteger"
+        val type = "Int"
+        var field: Field? = null
+
+        beforeGroup {
+            field = getSchema(graphQL!!).queryType.fields!!.find { it.name == name }!!
+        }
+
+        it("takes exactly one argument called x with type (nullable) $type") {
+            assertThat(field!!.args.map { it.name }).containsExactly("x")
+            val argType = field!!.args.find { it.name == "x" }!!.type
+            assertThat(argType.kind).isEqualTo("SCALAR")
+            assertThat(argType.name).isEqualTo("Int")
         }
     }
 })
