@@ -25,14 +25,14 @@ object PrimitiveFieldsTest : Spek({
     val graphQL = createGraphQL(PrimitiveFieldsQuery::class)
 
     describe("the queryType") {
-        var queryType : QueryType? = null
+        var queryType : Type? = null
 
         beforeGroup {
-            queryType = introspectQueryType(graphQL)
+            queryType = getSchema(graphQL).queryType
         }
 
         it("has the correct fields (and no more)") {
-            assertThat(queryType!!.fields.map { it.name }).containsExactlyInAnyOrder(
+            assertThat(queryType!!.fields!!.map { it.name }).containsExactlyInAnyOrder(
                 "integer", "long", "double", "float", "string", "boolean",
                 "nullableInteger", "nullableLong", "nullableDouble", "nullableFloat", "nullableString", "nullableBoolean"
             )
@@ -49,7 +49,7 @@ object PrimitiveFieldsTest : Spek({
             describe("the '$fieldName' field") {
                 var field : Field? = null
                 beforeGroup {
-                    field = queryType!!.fields.find { it.name == fieldName }
+                    field = queryType!!.fields!!.find { it.name == fieldName }
                 }
 
                 it("exists") {
@@ -77,7 +77,7 @@ object PrimitiveFieldsTest : Spek({
             describe("the '$fieldName' field") {
                 var field : Field? = null
                 beforeGroup {
-                    field = queryType!!.fields.find { it.name == fieldName }
+                    field = queryType!!.fields!!.find { it.name == fieldName }
                 }
                 it("exists") {
                     assertThat(field).isNotNull()

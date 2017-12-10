@@ -8,10 +8,14 @@ import kotlin.reflect.full.isSubclassOf
 
 fun createGraphQLSchema(kClass: KClass<*>): GraphQLSchema {
     return GraphQLSchema.newSchema()
-        .query(GraphQLObjectType.Builder()
-            .name(kClass.simpleName)
-            .fields(fields(kClass))
-        )
+        .query(graphQLObjectType(kClass))
+        .build()
+}
+
+private fun graphQLObjectType(kClass: KClass<*>): GraphQLObjectType {
+    return GraphQLObjectType.Builder()
+        .name(kClass.simpleName)
+        .fields(fields(kClass))
         .build()
 }
 
@@ -39,7 +43,7 @@ private fun graphQLOutputType(kType: KType): GraphQLOutputType {
         returnTypeClass == String::class -> GraphQLString
         returnTypeClass == Boolean::class -> GraphQLBoolean
         returnTypeClass.isSubclassOf(Collection::class) -> GraphQLList.list(graphQLOutputType(kType.arguments[0].type!!))
-        else -> TODO("No handler for returnType ${returnTypeClass}")
+        else -> graphQLObjectType(returnTypeClass)
     }
 
     val type: GraphQLOutputType = if (!kType.isMarkedNullable) {

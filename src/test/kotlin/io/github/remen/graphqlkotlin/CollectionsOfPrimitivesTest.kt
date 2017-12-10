@@ -20,16 +20,16 @@ object CollectionsOfPrimitivesTest : Spek({
     }
 
     describe("the queryType") {
-        var queryType: QueryType? = null
+        var queryType: Type? = null
 
         beforeGroup {
-            queryType = introspectQueryType(graphQL!!)
+            queryType = getSchema(graphQL!!).queryType
         }
 
         describe("the 'listOfInt' field") {
             var field : Field? = null
             beforeGroup {
-                field = queryType!!.fields.find { it.name == "listOfInt" }
+                field = queryType!!.fields!!.find { it.name == "listOfInt" }
             }
 
             it("exists") {
@@ -54,7 +54,7 @@ object CollectionsOfPrimitivesTest : Spek({
         describe("the 'collectionOfInt' field") {
             var field : Field? = null
             beforeGroup {
-                field = queryType!!.fields.find { it.name == "collectionOfInt" }
+                field = queryType!!.fields!!.find { it.name == "collectionOfInt" }
             }
 
             it("exists") {
@@ -79,7 +79,7 @@ object CollectionsOfPrimitivesTest : Spek({
         describe("the 'nullableListOfInt' field") {
             var field : Field? = null
             beforeGroup {
-                field = queryType!!.fields.find { it.name == "nullableListOfInt" }
+                field = queryType!!.fields!!.find { it.name == "nullableListOfInt" }
             }
 
             it("exists") {
@@ -102,7 +102,7 @@ object CollectionsOfPrimitivesTest : Spek({
         describe("the 'listOfNullableInt' field") {
             var field : Field? = null
             beforeGroup {
-                field = queryType!!.fields.find { it.name == "listOfNullableInt" }
+                field = queryType!!.fields!!.find { it.name == "listOfNullableInt" }
             }
 
             it("exists") {

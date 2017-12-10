@@ -11,10 +11,10 @@ object EmptyQueryTest : Spek({
     val graphQL = createGraphQL(EmptyQuery::class)
 
     describe("the queryType") {
-        var queryType: QueryType? = null
+        var queryType: Type? = null
 
         beforeGroup {
-            queryType = introspectQueryType(graphQL)
+            queryType = getSchema(graphQL).queryType
         }
 
         it("has the correct name") {
