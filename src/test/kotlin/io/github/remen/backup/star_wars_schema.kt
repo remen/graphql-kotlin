@@ -1,8 +1,4 @@
-package io.github.remen.graphqlkotlin
-
-import kotlin.reflect.full.declaredMembers
-import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.full.memberProperties
+package io.github.remen.backup
 
 enum class Episode {
     NEWHOPE, EMPIRE, JEDI

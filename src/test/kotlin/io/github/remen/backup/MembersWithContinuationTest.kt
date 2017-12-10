@@ -1,5 +1,6 @@
-package io.github.remen.graphqlkotlin
+package io.github.remen.backup
 
+import io.github.remen.graphqlkotlin.membersWithContinuation
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.it
 

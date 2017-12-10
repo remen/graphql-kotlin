@@ -1,8 +1,9 @@
-package io.github.remen.graphqlkotlin
+package io.github.remen.backup
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import graphql.GraphQL
+import io.github.remen.graphqlkotlin.SchemaBuilder
 import org.assertj.core.api.Assertions
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe

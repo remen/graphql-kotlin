@@ -1,4 +1,4 @@
-package io.github.remen.graphqlkotlin
+package io.github.remen.backup
 
 const val INTROSPECTION_QUERY = """  query IntrospectionQuery {
     __schema {
