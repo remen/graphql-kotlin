@@ -32,8 +32,11 @@ object PrimitiveFieldsTest : Spek({
             queryType = introspectQueryType(graphQL)
         }
 
-        it("has the correct name") {
-            assertThat(queryType!!.name).isEqualTo("PrimitiveFieldsQuery")
+        it("has the correct fields (and no more)") {
+            assertThat(queryType!!.fields.map { it.name }).containsExactlyInAnyOrder(
+                "integer", "long", "double", "float", "string", "boolean",
+                "nullableInteger", "nullableLong", "nullableDouble", "nullableFloat", "nullableString", "nullableBoolean"
+            )
         }
 
         listOf(
