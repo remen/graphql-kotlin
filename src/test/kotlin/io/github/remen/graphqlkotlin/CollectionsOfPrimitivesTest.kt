@@ -16,7 +16,7 @@ object CollectionsOfPrimitivesTest : Spek({
 
     var graphQL: GraphQL? = null
     beforeGroup {
-        graphQL = GraphQL.newGraphQL(createGraphQLSchema(CollectionsOfPrimitivesQuery::class)).build()
+        graphQL = createGraphQL(CollectionsOfPrimitivesQuery::class)
     }
 
     describe("the queryType") {

@@ -4,6 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import graphql.GraphQL
+import kotlin.reflect.KClass
+
+fun createGraphQL(kClass: KClass<*>): GraphQL {
+    return GraphQL.newGraphQL(createGraphQLSchema(kClass)).build()
+}
 
 fun introspectQueryType(graphQL: GraphQL): QueryType {
     val data = graphQL.execute(schemaQuery).getData<Any>()

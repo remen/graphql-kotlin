@@ -1,6 +1,5 @@
 package io.github.remen.graphqlkotlin
 
-import graphql.GraphQL
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
@@ -23,7 +22,7 @@ object PrimitiveFieldsTest : Spek({
         val nullableBoolean: Boolean? = null
     }
 
-    val graphQL = GraphQL.newGraphQL(createGraphQLSchema(PrimitiveFieldsQuery::class)).build()
+    val graphQL = createGraphQL(PrimitiveFieldsQuery::class)
 
     describe("the queryType") {
         var queryType : QueryType? = null

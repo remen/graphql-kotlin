@@ -1,6 +1,5 @@
 package io.github.remen.graphqlkotlin
 
-import graphql.GraphQL
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
@@ -9,7 +8,7 @@ import org.jetbrains.spek.api.dsl.it
 object EmptyQueryTest : Spek({
     class EmptyQuery
 
-    val graphQL = GraphQL.newGraphQL(createGraphQLSchema(EmptyQuery::class)).build()
+    val graphQL = createGraphQL(EmptyQuery::class)
 
     describe("the queryType") {
         var queryType: QueryType? = null
