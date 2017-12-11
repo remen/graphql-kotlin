@@ -39,7 +39,7 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
                     throw IllegalArgumentException("Cannot use Float type in input variables (Float type in GraphQL is too big)")
                 }
 
-                val argType : GraphQLInputType = graphQLType(kParameter.type)
+                val argType: GraphQLInputType = graphQLType(kParameter.type) as GraphQLInputType
 
                 GraphQLArgument.newArgument()
                     .name(kParameter.name)
@@ -47,7 +47,7 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
                     .build()
             }
 
-            val returnType: GraphQLOutputType = graphQLType(member.returnType)
+            val returnType: GraphQLOutputType = graphQLType(member.returnType) as GraphQLOutputType
             GraphQLFieldDefinition.newFieldDefinition()
                 .name(member.name)
                 .type(returnType)
@@ -56,53 +56,48 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
         }
     }
 
-    private fun <T : GraphQLType> graphQLType(kType: KType): T {
-        val returnTypeClass = kType.classifier!! as KClass<*>
-        val innerType: GraphQLOutputType = when {
-            returnTypeClass == Int::class -> GraphQLInt
-            returnTypeClass == Long::class -> GraphQLLong
-            returnTypeClass == Double::class -> GraphQLFloat
-            returnTypeClass == Float::class -> GraphQLFloat
-            returnTypeClass == String::class -> GraphQLString
-            returnTypeClass == Boolean::class -> GraphQLBoolean
-            returnTypeClass.isSubclassOf(Enum::class) -> {
-                val name = returnTypeClass.simpleName!!
-                if (name in references) {
-                    @Suppress("UNCHECKED_CAST")
-                    return GraphQLTypeReference(name) as T
-                }
+    private fun graphQLCompositeType(kClass: KClass<*>): GraphQLType {
+        return when {
+            kClass.simpleName!! in references -> GraphQLTypeReference(kClass.simpleName!!)
+            kClass.isSubclassOf(Enum::class) -> graphQLEnumType(kClass)
+            else -> graphQLObjectType(kClass)
+        }
+    }
 
-                val values = returnTypeClass.java.enumConstants.map { (it as Enum<*>).name }
-
-                references.add(name)
-                GraphQLEnumType.newEnum()
-                    .name(name)
-                    .apply { values.forEach { value(it) } }
-                    .build()
-            }
-            returnTypeClass.isSubclassOf(Collection::class) -> GraphQLList.list(graphQLType(kType.arguments[0].type!!))
-            else -> {
-                if (returnTypeClass.simpleName in references) {
-                    GraphQLTypeReference(returnTypeClass.simpleName)
-                } else {
-                    graphQLObjectType(returnTypeClass)
-                }
-            }
+    private fun graphQLType(kType: KType): GraphQLType {
+        val kClass = kType.classifier!! as KClass<*>
+        val innerType: GraphQLType = when {
+            kClass == Int::class -> GraphQLInt
+            kClass == Long::class -> GraphQLLong
+            kClass == Double::class -> GraphQLFloat
+            kClass == Float::class -> GraphQLFloat
+            kClass == String::class -> GraphQLString
+            kClass == Boolean::class -> GraphQLBoolean
+            kClass.isSubclassOf(Collection::class) -> GraphQLList.list(graphQLType(kType.arguments[0].type!!))
+            else -> graphQLCompositeType(kClass)
         }
 
-        val type: T = if (!kType.isMarkedNullable) {
-            @Suppress("UNCHECKED_CAST")
-            GraphQLNonNull(innerType) as T
+        val type = if (!kType.isMarkedNullable) {
+            GraphQLNonNull(innerType)
         } else {
-            @Suppress("UNCHECKED_CAST")
-            innerType as T
+            innerType
         }
         return type
+    }
+
+    private fun graphQLEnumType(returnTypeClass: KClass<*>): GraphQLEnumType {
+        val name = returnTypeClass.simpleName!!
+
+        references.add(name)
+
+        val values = returnTypeClass.java.enumConstants.map { (it as Enum<*>).name }
+        return GraphQLEnumType.newEnum()
+            .name(name)
+            .apply { values.forEach { value(it) } }
+            .build()
     }
 }
 
 fun createGraphQLSchema(kClass: KClass<*>): GraphQLSchema {
     return GraphQLSchemaBuilder(kClass).build()
 }
-
-fun <T : Enum<T>> KClass<T>.enumValues(): Array<T> = java.enumConstants
