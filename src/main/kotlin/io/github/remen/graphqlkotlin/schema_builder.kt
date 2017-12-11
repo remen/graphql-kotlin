@@ -17,12 +17,16 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
     }
 
     private fun graphQLObjectType(kClass: KClass<*>): GraphQLObjectType {
-        val name = kClass.simpleName!!
-        references.add(name)
-        return GraphQLObjectType.Builder()
-            .name(name)
-            .fields(fields(kClass))
-            .build()
+        try {
+            val name = kClass.simpleName!!
+            references.add(name)
+            return GraphQLObjectType.Builder()
+                .name(name)
+                .fields(fields(kClass))
+                .build()
+        } catch (e: Throwable) {
+            throw RuntimeException("Error while building type for ${kClass.qualifiedName}", e)
+        }
     }
 
     private fun fields(kClass: KClass<*>): List<GraphQLFieldDefinition> {
@@ -61,6 +65,21 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
             returnTypeClass == Float::class -> GraphQLFloat
             returnTypeClass == String::class -> GraphQLString
             returnTypeClass == Boolean::class -> GraphQLBoolean
+            returnTypeClass.isSubclassOf(Enum::class) -> {
+                val name = returnTypeClass.simpleName!!
+                if (name in references) {
+                    @Suppress("UNCHECKED_CAST")
+                    return GraphQLTypeReference(name) as T
+                }
+
+                val values = returnTypeClass.java.enumConstants.map { (it as Enum<*>).name }
+
+                references.add(name)
+                GraphQLEnumType.newEnum()
+                    .name(name)
+                    .apply { values.forEach { value(it) } }
+                    .build()
+            }
             returnTypeClass.isSubclassOf(Collection::class) -> GraphQLList.list(graphQLType(kType.arguments[0].type!!))
             else -> {
                 if (returnTypeClass.simpleName in references) {
@@ -85,3 +104,5 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
 fun createGraphQLSchema(kClass: KClass<*>): GraphQLSchema {
     return GraphQLSchemaBuilder(kClass).build()
 }
+
+fun <T : Enum<T>> KClass<T>.enumValues(): Array<T> = java.enumConstants

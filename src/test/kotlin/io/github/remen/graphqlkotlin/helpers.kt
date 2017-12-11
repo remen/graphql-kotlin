@@ -19,7 +19,7 @@ fun getSchema(graphQL: GraphQL): Schema {
 
 val objectMapper = ObjectMapper().registerKotlinModule().configure(SerializationFeature.INDENT_OUTPUT, true)
 
-val Any.json: String
+val Any?.json: String
     get() {
         return objectMapper.writeValueAsString(this)
     }
@@ -29,6 +29,10 @@ val schemaQuery = """
       __schema {
         types {
           name
+          kind
+          enumValues {
+            name
+          }
           fields {
             name
             args {
@@ -101,6 +105,7 @@ val schemaQuery = """
 data class FieldType(val name: String?, val kind: String?, val ofType: FieldType?)
 data class Arg(val name: String, val type: FieldType)
 data class Field(val name: String, val args: List<Arg>, val type: FieldType)
-data class Type(val name: String, val fields: List<Field>?)
+data class EnumValue(val name: String)
+data class Type(val name: String, val kind: String?, val fields: List<Field>?, val enumValues: List<EnumValue>?)
 data class Schema(val queryType: Type, val types: List<Type>)
 data class IntroSpectionResult(val __schema: Schema)
