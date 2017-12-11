@@ -35,7 +35,9 @@ object FieldsWithPrimitiveArgsTest : Spek({
     }
 
     var graphQL: GraphQL? = null
+    var schema: Schema? = null
     beforeGroup {
+        schema = getSchema(graphQL!!)
         graphQL = createGraphQL(FieldsWithPrimitiveArgsQuery::class)
     }
 
@@ -43,7 +45,7 @@ object FieldsWithPrimitiveArgsTest : Spek({
         var field: Field? = null
 
         beforeGroup {
-            field = getSchema(graphQL!!).queryType.fields!!.find { it.name == "twoArgs" }!!
+            field = schema!!.queryType.fields!!.find { it.name == "twoArgs" }!!
         }
 
         it("takes exactly two arguments called name and age") {
@@ -61,7 +63,7 @@ object FieldsWithPrimitiveArgsTest : Spek({
             var field: Field? = null
 
             beforeGroup {
-                field = getSchema(graphQL!!).queryType.fields!!.find { it.name == name }!!
+                field = schema!!.queryType.fields!!.find { it.name == name }!!
             }
 
             it("takes exactly one argument called x with type NON_NULL $type") {
@@ -81,7 +83,7 @@ object FieldsWithPrimitiveArgsTest : Spek({
         var field: Field? = null
 
         beforeGroup {
-            field = getSchema(graphQL!!).queryType.fields!!.find { it.name == name }!!
+            field = schema!!.queryType.fields!!.find { it.name == name }!!
         }
 
         it("takes exactly one argument called x with type (nullable) $type") {
