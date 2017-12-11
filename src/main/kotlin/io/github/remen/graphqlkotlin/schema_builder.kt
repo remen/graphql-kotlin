@@ -77,12 +77,11 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
             else -> graphQLCompositeType(kClass)
         }
 
-        val type = if (!kType.isMarkedNullable) {
+        return if (!kType.isMarkedNullable) {
             GraphQLNonNull(innerType)
         } else {
             innerType
         }
-        return type
     }
 
     private fun graphQLEnumType(returnTypeClass: KClass<*>): GraphQLEnumType {
