@@ -1,5 +1,6 @@
-package io.github.remen.graphqlkotlin
+package io.github.remen.graphqlkotlin.inputtypes
 
+import io.github.remen.graphqlkotlin.createGraphQL
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
 import org.jetbrains.spek.api.Spek

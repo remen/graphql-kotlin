@@ -1,5 +1,6 @@
-package io.github.remen.graphqlkotlin
+package io.github.remen.graphqlkotlin.outputtypes
 
+import io.github.remen.graphqlkotlin.*
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe

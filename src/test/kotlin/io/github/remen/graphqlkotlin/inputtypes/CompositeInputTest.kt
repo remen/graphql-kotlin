@@ -1,11 +1,12 @@
-package io.github.remen.graphqlkotlin
+package io.github.remen.graphqlkotlin.inputtypes
 
+import io.github.remen.graphqlkotlin.*
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
-object FieldsWithCompositeArgsTest: Spek({
+object CompositeInputTest : Spek({
     data class Condition(val field: String, val equalTo: String)
 
     class FieldsWithCompositeArgsQuery {

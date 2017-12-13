@@ -1,11 +1,14 @@
-package io.github.remen.graphqlkotlin
+package io.github.remen.graphqlkotlin.outputtypes
 
+import io.github.remen.graphqlkotlin.Type
+import io.github.remen.graphqlkotlin.createGraphQL
+import io.github.remen.graphqlkotlin.getSchema
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 
-object EmptyQueryTest : Spek({
+object EmptyClassTest : Spek({
     class EmptyQuery
 
     val graphQL = createGraphQL(EmptyQuery::class)
