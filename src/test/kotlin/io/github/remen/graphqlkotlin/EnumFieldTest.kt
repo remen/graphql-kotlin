@@ -7,9 +7,9 @@ import org.jetbrains.spek.api.dsl.it
 
 // Enum classes cannot be nested inside objects in Kotlin
 enum class Beverage {
-    NEWHOPE,
-    EMPIRE,
-    JEDI
+    COFFEE,
+    TEA,
+    CHOCOLATE
 }
 
 object EnumFieldTest : Spek({
@@ -63,7 +63,7 @@ object EnumFieldTest : Spek({
         }
 
         it("it has the correct enumValues") {
-            assertThat(type!!.enumValues!!.map { it.name }).containsExactlyInAnyOrder("NEWHOPE", "EMPIRE", "JEDI")
+            assertThat(type!!.enumValues!!.map { it.name }).containsExactlyInAnyOrder("COFFEE", "TEA", "CHOCOLATE")
         }
     }
 })
