@@ -4,6 +4,7 @@ import graphql.Scalars.*
 import graphql.schema.*
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
+import kotlin.reflect.KParameter
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.valueParameters
@@ -65,6 +66,16 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
                 .name(member.name)
                 .type(graphQLType(member.returnType, false) as GraphQLOutputType)
                 .argument(arguments(member))
+                .dataFetcher { env ->
+                    val callArgs = member.parameters.associate { kParameter ->
+                        kParameter to when (kParameter.kind) {
+                            KParameter.Kind.INSTANCE -> env.getSource<Any>()
+                            KParameter.Kind.VALUE -> env.getArgument(kParameter.name)
+                            KParameter.Kind.EXTENSION_RECEIVER -> throw RuntimeException("Extension methods not supported")
+                        }
+                    }
+                    member.callBy(callArgs)
+                }
                 .build()
         }
     }

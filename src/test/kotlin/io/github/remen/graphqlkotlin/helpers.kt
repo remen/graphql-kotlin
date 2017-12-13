@@ -12,16 +12,16 @@ fun createGraphQL(kClass: KClass<*>): GraphQL {
 
 fun getSchema(graphQL: GraphQL): Schema {
     val data = graphQL.execute(schemaQuery).getData<Any>()
-    val result = objectMapper.convertValue(data, IntroSpectionResult::class.java)
+    val result = OBJECT_MAPPER.convertValue(data, IntroSpectionResult::class.java)
     val __schema = result!!.__schema
     return __schema
 }
 
-val objectMapper = ObjectMapper().registerKotlinModule().configure(SerializationFeature.INDENT_OUTPUT, true)
+val OBJECT_MAPPER = ObjectMapper().registerKotlinModule().configure(SerializationFeature.INDENT_OUTPUT, true)
 
 val Any?.json: String
     get() {
-        return objectMapper.writeValueAsString(this)
+        return OBJECT_MAPPER.writeValueAsString(this)
     }
 
 val schemaQuery = """
