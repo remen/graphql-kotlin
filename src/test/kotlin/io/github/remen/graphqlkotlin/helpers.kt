@@ -88,6 +88,14 @@ val schemaQuery = """
                 ofType {
                   name
                   kind
+                  ofType {
+                    name
+                    kind
+                    ofType {
+                      name
+                      kind
+                    }
+                  }
                 }
               }
             }
