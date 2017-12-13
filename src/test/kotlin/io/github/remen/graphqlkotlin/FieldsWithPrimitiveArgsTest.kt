@@ -1,6 +1,5 @@
 package io.github.remen.graphqlkotlin
 
-import graphql.GraphQL
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
@@ -34,11 +33,9 @@ object FieldsWithPrimitiveArgsTest : Spek({
 
     }
 
-    var graphQL: GraphQL? = null
     var schema: Schema? = null
     beforeGroup {
-        schema = getSchema(graphQL!!)
-        graphQL = createGraphQL(FieldsWithPrimitiveArgsQuery::class)
+        schema = getSchema(createGraphQL(FieldsWithPrimitiveArgsQuery::class))
     }
 
     describe("the twoArgs field") {
