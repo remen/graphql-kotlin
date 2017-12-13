@@ -10,19 +10,32 @@ import kotlin.reflect.full.valueParameters
 
 class GraphQLSchemaBuilder(val kClass: KClass<*>) {
     private val references = mutableSetOf<String>()
+    private val additionalTypes = mutableListOf<KClass<*>>()
 
     fun build(): GraphQLSchema {
         return GraphQLSchema.newSchema()
             .query(graphQLObjectType(kClass))
+            .additionalTypes(additionalTypes.map { graphQLObjectType(it) }.toSet())
             .build()
     }
 
     private fun graphQLObjectType(kClass: KClass<*>): GraphQLObjectType {
         val name = kClass.simpleName!!
         references.add(name)
+
+        val interfaces = kClass.supertypes
+            .map { (it.classifier as KClass<*>).simpleName }
+            .filter { it in references }
+            .map { GraphQLTypeReference(it) }
+
         return GraphQLObjectType.Builder()
             .name(name)
             .fields(fields(kClass))
+            .apply {
+                interfaces.forEach {
+                    withInterface(it)
+                }
+            }
             .build()
     }
 
@@ -82,10 +95,28 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
     private fun graphQLCompositeType(kClass: KClass<*>, isInput: Boolean): GraphQLType {
         return when {
             kClass.simpleName!! in references -> GraphQLTypeReference(kClass.simpleName!!)
+            kClass.isSealed -> {
+                additionalTypes.addAll(kClass.nestedClasses.filter { it.isFinal && it.isSubclassOf(kClass) })
+                graphQLInterfaceType(kClass)
+            }
             kClass.isSubclassOf(Enum::class) -> graphQLEnumType(kClass)
             isInput -> graphQLInputObjectType(kClass)
             else -> graphQLObjectType(kClass)
         }
+    }
+
+    private fun graphQLInterfaceType(kClass: KClass<*>): GraphQLInterfaceType {
+        val name = kClass.simpleName!!
+        references.add(name)
+
+        return GraphQLInterfaceType.newInterface()
+            .name(kClass.simpleName)
+            .fields(fields(kClass))
+            .typeResolver { env ->
+                // TODO: This isn't very robust
+                env.schema.getType(env.getObject<Any>()::class.simpleName) as GraphQLObjectType
+            }
+            .build()
     }
 
     private fun graphQLType(kType: KType, isInput: Boolean): GraphQLType {

@@ -30,6 +30,9 @@ val schemaQuery = """
         types {
           name
           kind
+          possibleTypes {
+            name
+          }
           enumValues {
             name
           }
@@ -126,6 +129,6 @@ data class Arg(val name: String, val type: FieldType)
 data class Field(val name: String, val args: List<Arg>, val type: FieldType)
 data class InputValue(val name: String, val type: FieldType)
 data class EnumValue(val name: String)
-data class Type(val name: String, val kind: String?, val fields: List<Field>?, val inputFields: List<InputValue>?, val enumValues: List<EnumValue>?)
+data class Type(val name: String, val kind: String?, val fields: List<Field>?, val inputFields: List<InputValue>?, val enumValues: List<EnumValue>?, val possibleTypes: List<Type>?)
 data class Schema(val queryType: Type, val types: List<Type>)
 data class IntroSpectionResult(val __schema: Schema)
