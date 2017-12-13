@@ -2,6 +2,7 @@ package io.github.remen.graphqlkotlin
 
 import graphql.Scalars.*
 import graphql.schema.*
+import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSubclassOf
@@ -17,54 +18,77 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
     }
 
     private fun graphQLObjectType(kClass: KClass<*>): GraphQLObjectType {
-        try {
-            val name = kClass.simpleName!!
-            references.add(name)
-            return GraphQLObjectType.Builder()
-                .name(name)
-                .fields(fields(kClass))
+        val name = kClass.simpleName!!
+        references.add(name)
+        return GraphQLObjectType.Builder()
+            .name(name)
+            .fields(fields(kClass))
+            .build()
+    }
+
+
+    private fun graphQLInputObjectType(kClass: KClass<*>): GraphQLInputObjectType {
+        val name = kClass.simpleName!!
+        references.add(name)
+        return GraphQLInputObjectType
+            .newInputObject()
+            .name(kClass.simpleName)
+            .fields(inputFields(kClass))
+            .build()
+    }
+
+    private fun inputFields(kClass: KClass<*>): List<GraphQLInputObjectField> {
+        return nonInternalMembers(kClass).map { member ->
+            GraphQLInputObjectField.newInputObjectField()
+                .name(member.name)
+                .type(graphQLType(member.returnType, true) as GraphQLInputType)
                 .build()
-        } catch (e: Throwable) {
-            throw RuntimeException("Error while building type for ${kClass.qualifiedName}", e)
         }
     }
 
     private fun fields(kClass: KClass<*>): List<GraphQLFieldDefinition> {
-        return kClass.members.filterNot {
-            val name = it.name
-            listOf("name", "copy", "equals", "hashCode", "toString").contains(name) || name.startsWith("component")
-        }.mapNotNull { member ->
-            val arguments: List<GraphQLArgument> = member.valueParameters.map { kParameter ->
-                if (kParameter.type.classifier == Float::class) {
-                    throw IllegalArgumentException("Cannot use Float type in input variables (Float type in GraphQL is too big)")
-                }
-
-                val argType: GraphQLInputType = graphQLType(kParameter.type) as GraphQLInputType
-
-                GraphQLArgument.newArgument()
-                    .name(kParameter.name)
-                    .type(argType)
-                    .build()
-            }
-
-            val returnType: GraphQLOutputType = graphQLType(member.returnType) as GraphQLOutputType
+        return nonInternalMembers(kClass).map { member ->
             GraphQLFieldDefinition.newFieldDefinition()
                 .name(member.name)
-                .type(returnType)
-                .argument(arguments)
+                .type(graphQLType(member.returnType, false) as GraphQLOutputType)
+                .argument(arguments(member))
                 .build()
         }
     }
 
-    private fun graphQLCompositeType(kClass: KClass<*>): GraphQLType {
+    private fun arguments(member: KCallable<*>): List<GraphQLArgument> {
+        val arguments: List<GraphQLArgument> = member.valueParameters.map { kParameter ->
+            if (kParameter.type.classifier == Float::class) {
+                throw IllegalArgumentException("Cannot use Float type in input variables (Float type in GraphQL is too big)")
+            }
+
+            val argType: GraphQLInputType = graphQLType(kParameter.type, true) as GraphQLInputType
+
+            GraphQLArgument.newArgument()
+                .name(kParameter.name)
+                .type(argType)
+                .build()
+        }
+        return arguments
+    }
+
+    private fun nonInternalMembers(kClass: KClass<*>): List<KCallable<*>> {
+        return kClass.members.filterNot {
+            val name = it.name
+            listOf("name", "copy", "equals", "hashCode", "toString").contains(name) || name.startsWith("component")
+        }
+    }
+
+    private fun graphQLCompositeType(kClass: KClass<*>, isInput: Boolean): GraphQLType {
         return when {
             kClass.simpleName!! in references -> GraphQLTypeReference(kClass.simpleName!!)
             kClass.isSubclassOf(Enum::class) -> graphQLEnumType(kClass)
+            isInput -> graphQLInputObjectType(kClass)
             else -> graphQLObjectType(kClass)
         }
     }
 
-    private fun graphQLType(kType: KType): GraphQLType {
+    private fun graphQLType(kType: KType, isInput: Boolean): GraphQLType {
         val kClass = kType.classifier!! as KClass<*>
         val innerType: GraphQLType = when {
             kClass == Int::class -> GraphQLInt
@@ -73,8 +97,8 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
             kClass == Float::class -> GraphQLFloat
             kClass == String::class -> GraphQLString
             kClass == Boolean::class -> GraphQLBoolean
-            kClass.isSubclassOf(Collection::class) -> GraphQLList.list(graphQLType(kType.arguments[0].type!!))
-            else -> graphQLCompositeType(kClass)
+            kClass.isSubclassOf(Collection::class) -> GraphQLList.list(graphQLType(kType.arguments[0].type!!, isInput))
+            else -> graphQLCompositeType(kClass, isInput)
         }
 
         return if (!kType.isMarkedNullable) {
