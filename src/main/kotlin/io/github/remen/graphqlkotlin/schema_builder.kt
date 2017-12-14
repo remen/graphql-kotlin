@@ -9,7 +9,7 @@ import kotlin.reflect.KType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.valueParameters
 
-class GraphQLSchemaBuilder(val kClass: KClass<*>) {
+class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
     private val references = mutableSetOf<String>()
     private val additionalTypes = mutableListOf<KClass<*>>()
 
@@ -26,7 +26,7 @@ class GraphQLSchemaBuilder(val kClass: KClass<*>) {
 
         val interfaces = kClass.supertypes
             .map { (it.classifier as KClass<*>).simpleName }
-            .filter { it in references }
+            .filter { it in references } // TODO: This isn't correct
             .map { GraphQLTypeReference(it) }
 
         return GraphQLObjectType.Builder()
