@@ -124,7 +124,7 @@ class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
             .name(kClass.simpleName)
             .fields(fields(kClass))
             .typeResolver { env ->
-                // TODO: This isn't very robust
+                // TODO: This isn't very robust, but I'm also not convinced that it should be needed at all
                 env.schema.getType(env.getObject<Any>()::class.simpleName) as GraphQLObjectType
             }
             .build()
