@@ -17,7 +17,7 @@ sealed class Character(val id: String) {
 object SealedClassTest: Spek({
     class SealedClassQuery {
         fun character(id: String): Character {
-            return Character.Warrior("conan", "Broadsword")
+            return Character.Warrior(id, "Broadsword")
         }
     }
 

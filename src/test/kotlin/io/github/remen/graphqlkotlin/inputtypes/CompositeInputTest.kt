@@ -40,8 +40,9 @@ object CompositeInputTest : Spek({
             assertThat(field!!.args.map { it.name }).containsExactlyInAnyOrder("where")
             val fieldType = field!!.args.find { it.name == "where" }!!.type
             assertThat(fieldType.kind).isEqualTo("NON_NULL")
-            assertThat(fieldType.ofType!!.kind).isEqualTo("INPUT_OBJECT")
-            assertThat(fieldType.ofType!!.name).isEqualTo("Condition")
+            val ofType = fieldType.ofType!!
+            assertThat(ofType.kind).isEqualTo("INPUT_OBJECT")
+            assertThat(ofType.name).isEqualTo("Condition")
         }
     }
 
