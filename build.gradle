@@ -1,14 +1,24 @@
 // setup the plugin
 buildscript {
+    ext {
+        kotlin_version = '1.2.10'
+        kotlin_coroutines_version = '0.19.3'
+        jackson_version = '2.9.2'
+        spek_version = '1.1.5'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
     dependencies {
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
-plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.2.0"
-}
 apply plugin: 'org.junit.platform.gradle.plugin'
+apply plugin: 'kotlin'
 
 repositories {
     mavenCentral()
@@ -17,21 +27,21 @@ repositories {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:1.2.0"
-    compile 'org.jetbrains.kotlin:kotlin-reflect:1.2.0'
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.19.3'
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.19.3'
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    compile 'org.jetbrains.kotlin:kotlin-reflect'
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutines_version"
 
     compile 'com.graphql-java:graphql-java:6.0'
 
 
-    testCompile "com.fasterxml.jackson.core:jackson-databind:2.9.2"
-    testCompile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.2"
+    testCompile "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
+    testCompile "com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version"
     testCompile 'org.assertj:assertj-core:3.8.0'
     testCompile 'org.slf4j:slf4j-simple:1.7.7'
 
-    testCompile 'org.jetbrains.spek:spek-api:1.1.5'
-    testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.5'
+    testCompile "org.jetbrains.spek:spek-api:$spek_version"
+    testRuntime "org.jetbrains.spek:spek-junit-platform-engine:$spek_version"
 }
 
 compileKotlin { kotlinOptions { jvmTarget = "1.8" } }
