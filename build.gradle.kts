@@ -1,4 +1,8 @@
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
+import org.gradle.kotlin.dsl.kotlin
+import org.gradle.kotlin.dsl.version
+import org.jetbrains.kotlin.codegen.inline.initDefaultSourceMappingIfNeeded
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.junit.platform.gradle.plugin.EnginesExtension
 import org.junit.platform.gradle.plugin.FiltersExtension
@@ -14,8 +18,13 @@ buildscript {
     }
 }
 
+group = "io.github.remen"
+version = "0.1"
+
 plugins {
     kotlin("jvm") version "1.2.0"
+    id("com.jfrog.bintray") version "1.8.0"
+    `maven-publish`
 }
 kotlin {
     experimental.coroutines = Coroutines.ENABLE
@@ -43,6 +52,31 @@ configure<JUnitPlatformExtension> {
     filters {
         engines {
             includeClassNamePattern("spek")
+        }
+    }
+}
+
+publishing {
+    publications {
+        create("default", MavenPublication::class.java) {
+            from(components["java"])
+        }
+    }
+}
+
+bintray {
+    user = "remen"
+    key = System.getenv('BINTRAY_API_KEY')
+    setPublications("default")
+    pkg = PackageConfig().apply {
+        repo = "maven"
+        name = project.name
+        userOrg = user
+        setLicenses("MIT")
+        vcsUrl = "https://github.com/remen/graphql-kotlin.git"
+        setLabels("graphql", "kotlin")
+        version = VersionConfig().apply {
+            name = project.version.toString()
         }
     }
 }
