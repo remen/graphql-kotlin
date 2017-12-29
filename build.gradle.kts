@@ -1,5 +1,6 @@
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
+import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.kotlin
 import org.gradle.kotlin.dsl.version
 import org.jetbrains.kotlin.codegen.inline.initDefaultSourceMappingIfNeeded
@@ -23,6 +24,7 @@ plugins {
     id("com.jfrog.bintray") version "1.8.0"
     `maven-publish`
     id("com.palantir.git-version") version "0.10.0"
+    `java-library`
 }
 apply {
     plugin("org.junit.platform.gradle.plugin")
@@ -106,11 +108,10 @@ repositories {
 val JACKSON_VERSION = "2.9.2"
 val SPEK_VERSION = "1.1.5"
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation(kotlin("reflect"))
+    api("com.graphql-java", "graphql-java", "6.0")
 
-    implementation("com.graphql-java", "graphql-java", "6.0")
-
+    implementation(kotlin("stdlib-jdk8", "1.2.0"))
+    implementation(kotlin("reflect", "1.2.0"))
 
     testImplementation("com.fasterxml.jackson.core:jackson-databind:$JACKSON_VERSION")
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:$JACKSON_VERSION")
