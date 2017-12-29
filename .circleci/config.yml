@@ -42,3 +42,8 @@ jobs:
             - ~/.gradle
           key: v3-dependencies-{{ checksum "build.gradle.kts" }}
 
+      - deploy:
+          command: |
+            if [ "${CIRCLE_TAG}" != "" ]; then
+              echo $CIRCLE_TAG
+            fi
