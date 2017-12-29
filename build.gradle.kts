@@ -95,6 +95,7 @@ bintray {
         version = VersionConfig().apply {
             name = project.version.toString()
         }
+        publish = true
     }
 }
 
