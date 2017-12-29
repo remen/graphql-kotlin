@@ -2,10 +2,7 @@ package io.github.remen.graphqlkotlin
 
 import graphql.Scalars.*
 import graphql.schema.*
-import kotlin.reflect.KCallable
-import kotlin.reflect.KClass
-import kotlin.reflect.KParameter
-import kotlin.reflect.KType
+import kotlin.reflect.*
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.valueParameters
 
@@ -97,10 +94,14 @@ class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
     }
 
     private fun nonInternalMembers(kClass: KClass<*>): List<KCallable<*>> {
-        return kClass.members.filterNot {
-            val name = it.name
-            listOf("name", "copy", "equals", "hashCode", "toString").contains(name) || name.startsWith("component")
-        }
+        return kClass.members
+            .filter { it.visibility == KVisibility.PUBLIC }
+            .filterNot { isKotlinInternal(it) }
+    }
+
+    private fun isKotlinInternal(it: KCallable<*>): Boolean {
+        val name = it.name
+        return listOf("copy", "equals", "hashCode", "toString").contains(name) || name.startsWith("component")
     }
 
     private fun graphQLCompositeType(kClass: KClass<*>, isInput: Boolean): GraphQLType {
