@@ -2,6 +2,9 @@ package io.github.remen.graphqlkotlin
 
 import graphql.Scalars.*
 import graphql.schema.*
+import kotlinx.coroutines.experimental.future.future
+import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.experimental.intrinsics.suspendCoroutineOrReturn
 import kotlin.reflect.*
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.valueParameters
@@ -58,12 +61,30 @@ class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
     }
 
     private fun fields(kClass: KClass<*>): List<GraphQLFieldDefinition> {
+        // TODO: Make it an error to have more than one function with the same name
+        val javaParameterCount = kClass.java.methods.associate {
+            it.name to it.parameterCount
+        }
+
         return nonInternalMembers(kClass).map { member ->
             GraphQLFieldDefinition.newFieldDefinition()
                 .name(member.name)
                 .type(graphQLType(member.returnType, false) as GraphQLOutputType)
                 .argument(arguments(member))
                 .dataFetcher { env ->
+                    val numParameters = member.parameters.size
+                    val isSuspendFunction = numParameters != javaParameterCount[member.name]!! + 1
+
+                    if (isSuspendFunction) {
+                        // TODO: This puts strong constraints on the context
+                        val coroutineContext = env.getContext<CoroutineContext>()
+                        return@dataFetcher future(coroutineContext) {
+                            suspendCoroutineOrReturn<Any> { continuation: Any ->
+                                return@suspendCoroutineOrReturn member.call(env.getSource<Any>(), 10, continuation)
+                            }
+                        }
+                    }
+
                     val callArgs = member.parameters.associate { kParameter ->
                         kParameter to when (kParameter.kind) {
                             KParameter.Kind.INSTANCE -> env.getSource<Any>()

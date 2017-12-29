@@ -112,6 +112,8 @@ dependencies {
 
     implementation(kotlin("stdlib-jdk8", "1.2.0"))
     implementation(kotlin("reflect", "1.2.0"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.19.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.19.2")
 
     testImplementation("com.fasterxml.jackson.core:jackson-databind:$JACKSON_VERSION")
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:$JACKSON_VERSION")
