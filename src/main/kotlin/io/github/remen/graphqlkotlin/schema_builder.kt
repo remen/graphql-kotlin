@@ -26,7 +26,7 @@ class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
 
         val interfaces = kClass.supertypes
             .map { (it.classifier as KClass<*>).simpleName }
-            .filter { it in references } // TODO: This isn't correct
+            .filter { it in references } // TODO: This isn't correct, and assumes that the interface type has already been built
             .map { GraphQLTypeReference(it) }
 
         return GraphQLObjectType.Builder()
@@ -80,7 +80,7 @@ class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
                     val isSuspendFunction = numParameters != javaParameterCount[member.name]!! + 1
 
                     if (isSuspendFunction) {
-                        // TODO: This puts strong constraints on the context
+                        // TODO: This means that if we have any suspend function, we have to set to coroutine context ourselves
                         val coroutineContext = env.getContext<CoroutineContext>()
                         return@dataFetcher future(coroutineContext) {
                             suspendCoroutineOrReturn<Any> { continuation: Any ->
