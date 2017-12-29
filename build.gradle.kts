@@ -66,6 +66,12 @@ publishing {
     }
 }
 
+tasks {
+    "publish" {
+        dependsOn("bintrayUpload")
+    }
+}
+
 bintray {
     user = "remen"
     key = System.getenv("BINTRAY_API_KEY")
