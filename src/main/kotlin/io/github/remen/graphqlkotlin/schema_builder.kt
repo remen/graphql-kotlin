@@ -60,10 +60,14 @@ class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
         }
     }
 
+    private fun normalizeGetter(methodName: String) : String {
+        return methodName.replace(Regex("^get"), "").decapitalize()
+    }
+
     private fun fields(kClass: KClass<*>): List<GraphQLFieldDefinition> {
         // TODO: Make it an error to have more than one function with the same name
         val javaParameterCount = kClass.java.methods.associate {
-            it.name to it.parameterCount
+            normalizeGetter(it.name) to it.parameterCount
         }
 
         return nonInternalMembers(kClass).map { member ->
@@ -80,7 +84,14 @@ class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
                         val coroutineContext = env.getContext<CoroutineContext>()
                         return@dataFetcher future(coroutineContext) {
                             suspendCoroutineOrReturn<Any> { continuation: Any ->
-                                return@suspendCoroutineOrReturn member.call(env.getSource<Any>(), 10, continuation)
+                                val args = Array(numParameters + 1) { i ->
+                                    when(i) {
+                                        0 -> env.getSource()
+                                        numParameters -> continuation
+                                        else -> env.getArgument(member.parameters[i].name)
+                                    }
+                                }
+                                return@suspendCoroutineOrReturn member.call(*args)
                             }
                         }
                     }
