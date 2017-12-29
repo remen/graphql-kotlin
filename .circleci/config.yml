@@ -46,7 +46,7 @@ jobs:
       - deploy:
           name: Publish (if tagged)
           command: |
-            if [ "${CIRCLE_TAG}" != "" ]; then
+            if [ -n "${CIRCLE_TAG}" ]; then
               ./gradlew publish
             fi
 workflows:
