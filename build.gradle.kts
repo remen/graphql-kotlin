@@ -18,22 +18,24 @@ buildscript {
     }
 }
 
-group = "io.github.remen"
-version = "0.1"
-
 plugins {
     kotlin("jvm") version "1.2.0"
     id("com.jfrog.bintray") version "1.8.0"
     `maven-publish`
+    id("com.palantir.git-version") version "0.10.0"
 }
-kotlin {
-    experimental.coroutines = Coroutines.ENABLE
-}
-
 apply {
     plugin("org.junit.platform.gradle.plugin")
 }
 
+val gitVersion : groovy.lang.Closure<Any> by extra
+
+group = "io.github.remen"
+version = gitVersion()
+
+kotlin {
+    experimental.coroutines = Coroutines.ENABLE
+}
 
 // extension for configuration
 fun JUnitPlatformExtension.filters(setup: FiltersExtension.() -> Unit) {
