@@ -66,7 +66,7 @@ publishing {
 
 bintray {
     user = "remen"
-    key = System.getenv('BINTRAY_API_KEY')
+    key = System.getenv("BINTRAY_API_KEY")
     setPublications("default")
     pkg = PackageConfig().apply {
         repo = "maven"
