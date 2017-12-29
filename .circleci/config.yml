@@ -31,8 +31,9 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v3-dependencies-
 
-      # run tests!
-      - run: ./gradlew test
+      - run:
+          name: Build
+          command: ./gradlew build
 
       - store_test_results:
           path: build/test-results
@@ -43,6 +44,7 @@ jobs:
           key: v3-dependencies-{{ checksum "build.gradle.kts" }}
 
       - deploy:
+          name: Publish (if tagged)
           command: |
             if [ "${CIRCLE_TAG}" != "" ]; then
               ./gradlew publish
