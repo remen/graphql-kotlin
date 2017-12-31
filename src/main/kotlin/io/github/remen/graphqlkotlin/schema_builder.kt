@@ -3,13 +3,12 @@ package io.github.remen.graphqlkotlin
 import graphql.Scalars.*
 import graphql.schema.*
 import kotlinx.coroutines.experimental.future.future
-import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.coroutines.experimental.intrinsics.suspendCoroutineOrReturn
 import kotlin.reflect.*
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.valueParameters
 
-class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
+private class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
     private val references = mutableSetOf<String>()
     private val additionalTypes = mutableListOf<KClass<*>>()
 
@@ -80,9 +79,9 @@ class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
                     val isSuspendFunction = numParameters != javaParameterCount[member.name]!! + 1
 
                     if (isSuspendFunction) {
-                        // TODO: This means that if we have any suspend function, we have to set to coroutine context ourselves
-                        val coroutineContext = env.getContext<CoroutineContext>()
-                        return@dataFetcher future(coroutineContext) {
+                        // TODO: If this cast fails, we should give a better error message
+                        val context = env.getContext<ContextWithContinuation>()
+                        return@dataFetcher future(context.coroutineContext) {
                             suspendCoroutineOrReturn<Any> { continuation: Any ->
                                 val args = Array(numParameters + 1) { i ->
                                     when(i) {

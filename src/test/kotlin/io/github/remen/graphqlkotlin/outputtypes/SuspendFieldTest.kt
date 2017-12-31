@@ -46,11 +46,10 @@ object SuspendFieldTest : Spek({
 
         it("can be queried against") {
             runBlocking {
-                val result = graphQL!!.executeAsync(ExecutionInput.newExecutionInput()
-                    .context(coroutineContext)
-                    .query("{ suspend(delay: 10) }")
-                    .root(SuspendableQuery())
-                ).await()
+                val result = graphQL!!.executeSuspend(
+                    query = "{ suspend(delay: 10) }",
+                    root = SuspendableQuery()
+                )
                 val json = OBJECT_MAPPER.convertValue(result, JsonNode::class.java)
                 assertThat(json["errors"]).isNullOrEmpty()
                 assertThat(json["data"]["suspend"].asLong()).isEqualTo(10)
