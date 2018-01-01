@@ -20,7 +20,7 @@ buildscript {
 }
 
 plugins {
-    kotlin("jvm") version "1.2.0"
+    kotlin("jvm") version "1.2.10"
     id("com.jfrog.bintray") version "1.8.0"
     `maven-publish`
     id("com.palantir.git-version") version "0.10.0"
@@ -110,10 +110,10 @@ val SPEK_VERSION = "1.1.5"
 dependencies {
     api("com.graphql-java", "graphql-java", "6.0")
 
-    implementation(kotlin("stdlib-jdk8", "1.2.0"))
-    implementation(kotlin("reflect", "1.2.0"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.19.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.19.2")
+    implementation(kotlin("stdlib-jdk8", "1.2.10"))
+    implementation(kotlin("reflect", "1.2.10"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.21")
 
     testImplementation("com.fasterxml.jackson.core:jackson-databind:$JACKSON_VERSION")
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:$JACKSON_VERSION")
