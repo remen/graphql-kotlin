@@ -5,8 +5,7 @@ import graphql.schema.*
 import kotlinx.coroutines.experimental.future.future
 import kotlin.coroutines.experimental.intrinsics.suspendCoroutineOrReturn
 import kotlin.reflect.*
-import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.valueParameters
+import kotlin.reflect.full.*
 
 private class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
     private val references = mutableSetOf<String>()
@@ -96,10 +95,14 @@ private class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
                     }
 
                     val callArgs = member.parameters.associate { kParameter ->
-                        kParameter to when (kParameter.kind) {
-                            KParameter.Kind.INSTANCE -> env.getSource<Any>()
-                            KParameter.Kind.VALUE -> env.getArgument(kParameter.name)
-                            KParameter.Kind.EXTENSION_RECEIVER -> throw RuntimeException("Extension methods not supported")
+                        kParameter to if ((kParameter.type.classifier as KClass<*>).isSubclassOf(DataFetchingEnvironment::class)) {
+                            ContextUnwrappingDataFetchingEnvironment(env)
+                        } else {
+                            when (kParameter.kind) {
+                                KParameter.Kind.INSTANCE -> env.getSource<Any>()
+                                KParameter.Kind.VALUE -> env.getArgument(kParameter.name)
+                                KParameter.Kind.EXTENSION_RECEIVER -> throw RuntimeException("Extension methods not supported")
+                            }
                         }
                     }
                     member.callBy(callArgs)
@@ -109,9 +112,13 @@ private class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
     }
 
     private fun arguments(member: KCallable<*>): List<GraphQLArgument> {
-        val arguments: List<GraphQLArgument> = member.valueParameters.map { kParameter ->
+        val arguments: List<GraphQLArgument> = member.valueParameters.mapNotNull { kParameter ->
             if (kParameter.type.classifier == Float::class) {
                 throw IllegalArgumentException("Cannot use Float type in input variables (Float type in GraphQL is too big)")
+            }
+
+            if(DataFetchingEnvironment::class.isSuperclassOf(kParameter.type.classifier as KClass<*>)) {
+                return@mapNotNull null
             }
 
             val argType: GraphQLInputType = graphQLType(kParameter.type, true) as GraphQLInputType
@@ -197,4 +204,15 @@ private class GraphQLSchemaBuilder(private val kClass: KClass<*>) {
 
 fun createGraphQLSchema(kClass: KClass<*>): GraphQLSchema {
     return GraphQLSchemaBuilder(kClass).build()
+}
+
+class ContextUnwrappingDataFetchingEnvironment(private val env: DataFetchingEnvironment) : DataFetchingEnvironment by env {
+    override fun <T : Any?> getContext(): T {
+        val context = env.getContext<Any?>()
+        if (context is ContextWithContinuation) {
+            return context.context as T
+        } else {
+            return context as T
+        }
+    }
 }
